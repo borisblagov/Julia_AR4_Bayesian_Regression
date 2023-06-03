@@ -2,9 +2,7 @@ module NewB
 using LinearAlgebra
 using Distributions
 export AbstractMixtureModel, AbstractMvNormal, Arcsine, ArrayLikeVariate, Bernoulli, BernoulliLogit, Beta, BetaBinomial, BetaPrime, Binomial, Biweight, Categorical, Cauchy, Chernoff, Chi, Chisq, CholeskyVariate, Continuous, ContinuousDistribution, ContinuousMatrixDistribution, ContinuousMultivariateDistribution, ContinuousUnivariateDistribution, Cosine, DiagNormal, DiagNormalCanon, Dirac, Dirichlet, DirichletMultinomial, Discrete, DiscreteDistribution, DiscreteMatrixDistribution, DiscreteMultivariateDistribution, DiscreteNonParametric, DiscreteUniform, DiscreteUnivariateDistribution, Distribution, Distributions, DoubleExponential, EdgeworthMean, EdgeworthSum, EdgeworthZ, Epanechnikov, Erlang, Estimator, Exponential, FDist, FisherNoncentralHypergeometric, Frechet, FullNormal, FullNormalCanon, Gamma, GeneralizedExtremeValue, GeneralizedPareto, Geometric, Gumbel, Hypergeometric, InverseGamma, InverseGaussian, InverseWishart, IsoNormal, IsoNormalCanon, JohnsonSU, JointOrderStatistics, KSDist, KSOneSided, Kolmogorov, Kumaraswamy, LKJ, LKJCholesky, Laplace, Levy, Lindley, LocationScale, LogNormal, LogUniform, Logistic, LogitNormal, MLEstimator, MatrixBeta, MatrixDistribution, MatrixFDist, MatrixNormal, MatrixReshaped, MatrixTDist, Matrixvariate, MixtureModel, Multinomial, Multivariate, MultivariateDistribution, MultivariateMixture, MultivariateNormal, MvLogNormal, MvNormal, MvNormalCanon, MvNormalKnownCov, MvTDist, NegativeBinomial, NonMatrixDistribution, NoncentralBeta, NoncentralChisq, NoncentralF, NoncentralHypergeometric, NoncentralT, Normal, NormalCanon, NormalInverseGaussian, OrderStatistic, PGeneralizedGaussian, Pareto, Poisson, PoissonBinomial, Product, QQPair, Rayleigh, RealInterval, Rician, Sampleable, Semicircle, Skellam, SkewNormal, SkewedExponentialPower, Soliton, StudentizedRange, SufficientStats, SymTriangularDist, TDist, TriangularDist, Triweight, Truncated, TruncatedNormal, Uniform, Univariate, UnivariateDistribution, UnivariateGMM, UnivariateMixture, ValueSupport, VariateForm, VonMises, VonMisesFisher, WalleniusNoncentralHypergeometric, Weibull, Wishart, ZeroMeanDiagNormal, ZeroMeanDiagNormalCanon, ZeroMeanFullNormal, ZeroMeanFullNormalCanon, ZeroMeanIsoNormal, ZeroMeanIsoNormalCanon, canonform, ccdf, cdf, censored, cf, cgf, circvar, component, components, componentwise_logpdf, componentwise_pdf, concentration, convolve, cor, cov, cquantile, dim, dof, entropy, estimate, expected_logdet, failprob, fit, fit_mle, gradlogpdf, hasfinitesupport, insupport, invcov, invlogccdf, invlogcdf, invscale, isbounded, isleptokurtic, islowerbounded, ismesokurtic, isplatykurtic, isprobvec, isupperbounded, kldivergence, kurtosis, location, location!, logccdf, logcdf, logdetcov, logdiffcdf, loglikelihood, logpdf, logpdf!, mean, meandir, meanform, meanlogx, median, mgf, mode, modes, moment, ncategories, ncomponents, nsamples, ntrials, params, params!, partype, pdf, pdfsquaredL2norm, probs, probval, product_distribution, qqbuild, quantile, rate, sample, sample!, sampler, scale, scale!, shape, skewness, span, sqmahal, sqmahal!, std, stdlogx, succprob, suffstats, support, truncated, var, varlogx, wsample, wsample!
-export greet, mlag, genBeta, genSigma, gibbs
-
-greet() = print("Hello World!")
+export mlag, genBeta, genSigma, gibbs
 
 """
     mlag(Yfull::Matrix{Float64},p::Integer)
@@ -23,8 +21,7 @@ end
 
 function genBeta(X,Y,Beta_prior,Sigma_prior,sig2_d)
     invSig = Sigma_prior^-1
-    Vinv = invSig + sig2_d^(-1)*(X'*X)
-    V = Vinv^-1
+    V = (invSig + sig2_d^(-1)*(X'*X))^-1
     C = cholesky(Hermitian(V)) 
     Beta1 =  V*(invSig*Beta_prior + sig2_d^(-1)*X'*Y)
     beta_d = Beta1 + C.L*randn(5,1)
