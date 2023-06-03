@@ -5,10 +5,10 @@ using DelimitedFiles
 using BenchmarkTools
 using NewB
 
-fdata = readdlm("gdp4795.txt")
-
-Z = 100*fdata[21:end,:]./fdata[20:end-1,:].-100
+# fdata = readdlm("gdp4795.txt")
+# Z = 100*fdata[21:end,:]./fdata[20:end-1,:].-100
 # plot(Z)
+Z = rand(150,1)
 
 n_gibbs = 7000
 burn    = 2000
