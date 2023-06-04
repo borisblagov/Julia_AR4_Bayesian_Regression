@@ -29,13 +29,16 @@ end
 
 function genSigma(Y,X,beta_d,nu0,d0)
     nu1 = size(Y,1)+nu0
-    d1  = d0 + only((Y-X*beta_d)'*(Y-X*beta_d)) 
+    resid = Y - X * beta_d;
+    d1 = d0 + dot(resid, resid)
+    #d1  = d0 + only((Y-X*beta_d)'*(Y-X*beta_d)) 
     sig2_inv = rand(Gamma(nu1/2,2/d1),1)
     sig2_d = 1/only(sig2_inv)
     return sig2_d
 end
 
 function gibbs(Y,X,BETA0,Sigma0,sig2_d,d0,nu0,n_gibbs,burn)
+#    beta_d = zeros(5,1)
     beta_dist = zeros(5,n_gibbs-burn)
     sigma_dist = zeros(1,n_gibbs-burn)
     for i = 1:n_gibbs
