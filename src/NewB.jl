@@ -1,13 +1,33 @@
 module NewB
 using LinearAlgebra
 using Distributions
-export mlag, genBeta, genSigma, gibbs
+export mlag, genBeta, genSigma, gibbs, mlag_old_v1, mlag_old_v2
 
 """
     mlag(Yfull::Matrix{Float64},p::Integer)
     Creates lags of a matrix for a VAR representation with a constant on the left
 """
 function mlag(Yfull::Matrix{Float64},p::Integer)
+    (Tf, n) = size(Yfull)
+    X = ones(Tf-p,1+n*p)
+    for i = 1:p
+        X[:,1 + n*(i-1): n + n*(i-1)] = @view Yfull[p-i+1:end-i,:]
+    end
+    Y = Yfull[p+1:end,:]
+    return X, Y             # this changes the array passed into the function
+end
+
+function mlag_old_v2(Yfull::Matrix{Float64},p::Integer)
+    (Tf, n) = size(Yfull)
+    X = ones(Tf-p,1+n*p)
+    for i = 1:p
+        X[:,1 + n*(i-1): n + n*(i-1)] = Yfull[p-i+1:end-i,:]
+    end
+    Y = Yfull[p+1:end,:]
+    return X, Y             # this changes the array passed into the function
+end
+
+function mlag_old_v1(Yfull::Matrix{Float64},p::Integer)
     (Tf, n) = size(Yfull)
     X = ones(Tf-p,1)
     for i = 1:p
