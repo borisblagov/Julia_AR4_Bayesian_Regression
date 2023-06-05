@@ -18,12 +18,12 @@ function mlag(Yfull::Matrix{Float64},p::Integer)
 end
 
 
-function genBeta(X,Y,Beta_prior,Sigma_prior,sig2_d)
+function genBeta(X,Y,Beta_prior,Sigma_prior,sig2_d,beta_d)
     invSig = Sigma_prior^-1
     V = (invSig + sig2_d^(-1)*(X'*X))^-1
     C = cholesky(Hermitian(V)) 
     Beta1 =  V*(invSig*Beta_prior + sig2_d^(-1)*X'*Y)
-    beta_d = Beta1 + C.L*randn(5,1)
+    beta_d[:,1] = Beta1 + C.L*randn(5,1)
     return beta_d
 end
 
@@ -38,11 +38,11 @@ function genSigma(Y,X,beta_d,nu0,d0)
 end
 
 function gibbs(Y,X,BETA0,Sigma0,sig2_d,d0,nu0,n_gibbs,burn)
-#    beta_d = zeros(5,1)
+    beta_d = zeros(5,1)
     beta_dist = zeros(5,n_gibbs-burn)
     sigma_dist = zeros(1,n_gibbs-burn)
     for i = 1:n_gibbs
-        beta_d = genBeta(X,Y,BETA0,Sigma0,sig2_d)
+        beta_d = genBeta(X,Y,BETA0,Sigma0,sig2_d,beta_d)
         sig2_d = genSigma(Y,X,beta_d,nu0,d0)
         if i > burn
             beta_dist[:,i-burn] = beta_d
