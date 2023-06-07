@@ -1,7 +1,7 @@
 module NewB
 using LinearAlgebra
 using Distributions
-export mlag, genBeta, genSigma, gibbs, genBeta!, genSigma!
+export mlag, genBeta, genSigma, gibbs, genBeta!, genSigma!,gibbs_old
 
 """
     mlag(Yfull::Matrix{Float64},p::Integer)
