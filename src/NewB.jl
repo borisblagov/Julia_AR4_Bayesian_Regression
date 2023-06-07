@@ -1,7 +1,7 @@
 module NewB
 using LinearAlgebra
 using Distributions
-export mlag, genBeta, genSigma, gibbs
+export mlag, genBeta, genSigma, gibbs, genSigma_old
 
 """
     mlag(Yfull::Matrix{Float64},p::Integer)
@@ -28,6 +28,18 @@ function genBeta(X,Y,Beta_prior,Sigma_prior,sig2_d,beta_d)
 end
 
 function genSigma(Y,X,beta_d,nu0,d0)
+    nu1 = size(Y,1)+nu0
+    resid = similar(Y)          # changes 
+    mul!(resid, X, beta_d)
+    resid .= resid.- Y          # short form is resid .-= Y
+    d1 = d0 + dot(resid, resid)
+    #d1  = d0 + only((Y-X*beta_d)'*(Y-X*beta_d)) 
+    sig2_inv = rand(Gamma(nu1/2,2/d1),1)
+    sig2_d = 1/only(sig2_inv)
+    return sig2_d
+end
+
+function genSigma_old(Y,X,beta_d,nu0,d0)
     nu1 = size(Y,1)+nu0
     resid = Y - X * beta_d;
     d1 = d0 + dot(resid, resid)
