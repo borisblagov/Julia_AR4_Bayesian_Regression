@@ -1,7 +1,7 @@
 module NewB
 using LinearAlgebra
 using Distributions
-export mlag, genBeta, genSigma, gibbs, genBeta!, genSigma!,gibbs_old, gibbs_old2, genBeta!_old, gibbs_old3
+export mlag, genBeta, genSigma, gibbs, genBeta!, genSigma!, genBeta2!
 
 """
     mlag(Yfull::Matrix{Float64},p::Integer)
@@ -27,20 +27,23 @@ function genBeta(X,Y,Beta_prior,Sigma_prior,sig2_d)
     return beta_d
 end
 
-
-function genBeta_old!(beta_d,X,Y,Beta_prior,Sigma_prior,sig2_d_vec)
-    invSig = Sigma_prior^-1
-    V = (invSig + sig2_d_vec[1]^(-1)*(X'*X))^-1
-    C = cholesky(Hermitian(V)) 
-    Beta1 =  V*(invSig*Beta_prior + sig2_d_vec[1]^(-1)*X'*Y)
-    beta_d .= Beta1 .+ C.L*randn(5,1)
+function genBeta2!(beta_d,invSig,sig2_d_vec,Xprim,XprimY,invSBetaPr)
+    sig2inv = sig2_d_vec[1]^(-1)
+    V = invSig + sig2inv*Xprim
+    cholV = cholesky(Hermitian(V))
+    beta_d .=  V\(invSBetaPr + sig2inv*XprimY) + cholV.L\randn(5,1)
+#    Vinv = (V)^-1
+ #   C = cholesky(Hermitian(Vinv)) 
+#    Beta1 =  Vinv*(invSBetaPr + sig2inv*XprimY)
+#    beta_d .= Beta1 .+ C.L*randn(5,1)
 end
 
 
 function genBeta!(beta_d,invSig,sig2_d_vec,Xprim,XprimY,invSBetaPr)
-    V = (invSig + sig2_d_vec[1]^(-1)*Xprim)^-1
-    C = cholesky(Hermitian(V)) 
-    Beta1 =  V*(invSBetaPr + sig2_d_vec[1]^(-1)*XprimY)
+    sig2inv = sig2_d_vec[1]^(-1)
+    Vinv = (invSig + sig2inv*Xprim)^-1
+    C = cholesky(Hermitian(Vinv)) 
+    Beta1 =  Vinv*(invSBetaPr + sig2inv*XprimY)
     beta_d .= Beta1 .+ C.L*randn(5,1)
 end
 
@@ -64,36 +67,6 @@ function genSigma!(sig2_d_vec,Y,X,beta_d,nu0,d0)
     sig2_d_vec[:] = 1.0 ./sig2_inv
 end
 
-function gibbs_old(Y,X,BETA0,Sigma0,sig2_d,d0,nu0,n_gibbs,burn)
-    beta_dist = zeros(5,n_gibbs-burn)
-    sigma_dist = zeros(1,n_gibbs-burn)
-    for i = 1:n_gibbs
-        beta_d = genBeta(X,Y,BETA0,Sigma0,sig2_d)
-        sig2_d = genSigma(Y,X,beta_d,nu0,d0)
-        if i > burn
-            beta_dist[:,i-burn] = beta_d
-            sigma_dist[1,i-burn] = sig2_d
-        end
-    end
-    return beta_dist, sigma_dist
-end
-
-function gibbs_old2(Y,X,BETA0,Sigma0,sig2_d_init,d0,nu0,n_gibbs,burn)
-    beta_d = similar(BETA0)
-    sig2_d_vec = sig2_d_init
-    beta_dist = zeros(5,n_gibbs-burn)
-    sigma_dist = zeros(1,n_gibbs-burn)
-    for i = 1:n_gibbs
-        genBeta_old!(beta_d,X,Y,BETA0,Sigma0,sig2_d_vec)
-        genSigma!(sig2_d_vec,Y,X,beta_d,nu0,d0)
-        if i > burn
-            beta_dist[:,i-burn] .= beta_d[:]
-            sigma_dist[:,i-burn] .= sig2_d_vec[:]
-        end
-    end
-    return beta_dist, sigma_dist
-end
-
 function gibbs(Y,X,BETA0,Sigma0,sig2_d_init,d0,nu0,n_gibbs,burn)
     beta_d = similar(BETA0)
     sig2_d_vec = sig2_d_init
@@ -104,7 +77,7 @@ function gibbs(Y,X,BETA0,Sigma0,sig2_d_init,d0,nu0,n_gibbs,burn)
     invSig = Sigma0^-1;
     invSBetaPr = invSig*BETA0
     for i = 1:n_gibbs
-        genBeta!(beta_d,invSig,sig2_d_vec,Xprim,XprimY,invSBetaPr) # genBeta! has changed
+        genBeta2!(beta_d,invSig,sig2_d_vec,Xprim,XprimY,invSBetaPr) # genBeta! has changed
         genSigma!(sig2_d_vec,Y,X,beta_d,nu0,d0)
         if i > burn
             beta_dist[:,i-burn] .= beta_d[:]
@@ -114,20 +87,5 @@ function gibbs(Y,X,BETA0,Sigma0,sig2_d_init,d0,nu0,n_gibbs,burn)
     return beta_dist, sigma_dist
 end
 
-function gibbs_old3(Y,X,BETA0,Sigma0,sig2_d_init,d0,nu0,n_gibbs,burn)
-    beta_d = similar(BETA0)
-    sig2_d_vec = sig2_d_init
-    beta_dist = zeros(5,n_gibbs-burn)
-    sigma_dist = zeros(1,n_gibbs-burn)
-    for i = 1:n_gibbs
-        genBeta_old!(beta_d,X,Y,BETA0,Sigma0,sig2_d_vec)
-        genSigma!(sig2_d_vec,Y,X,beta_d,nu0,d0)
-        if i > burn
-            beta_dist[:,i-burn] .= beta_d[:]
-            sigma_dist[:,i-burn] .= sig2_d_vec[:]
-        end
-    end
-    return beta_dist, sigma_dist
-end
 
 end # module NewB
